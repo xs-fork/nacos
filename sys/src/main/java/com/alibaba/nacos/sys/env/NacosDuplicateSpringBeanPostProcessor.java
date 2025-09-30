@@ -41,7 +41,10 @@ public class NacosDuplicateSpringBeanPostProcessor extends AbstractNacosDuplicat
     }
     
     private boolean isContextBean(Class<?> beanClass) {
-        return isContextClass(beanClass.getCanonicalName());
+        String canonicalName = beanClass.getCanonicalName();
+        // Use getName() as fallback if getCanonicalName() returns null (for anonymous classes, etc.)
+        String beanClassName = canonicalName != null ? canonicalName : beanClass.getName();
+        return isContextClass(beanClassName);
     }
     
     private boolean isContextClass(String beanClassName) {

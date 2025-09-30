@@ -89,4 +89,34 @@ class NacosDuplicateSpringBeanPostProcessorTest {
         when(context.getBean("testBean")).thenReturn(this);
         assertEquals(this, processor.postProcessBeforeInstantiation(beanClass, "testBean"));
     }
+    
+    @Test
+    void testPostProcessBeforeInstantiationForAnonymousClass() {
+        // Create an anonymous class that would have null canonical name
+        Runnable anonymousClass = new Runnable() {
+            @Override
+            public void run() {
+            }
+        };
+        
+        when(context.containsBean("anonymousBean")).thenReturn(true);
+        when(context.getBeanFactory()).thenReturn(beanFactory);
+        when(beanFactory.getBeanDefinition("anonymousBean")).thenReturn(beanDefinition);
+        when(context.getBean("anonymousBean")).thenReturn(anonymousClass);
+        
+        // This should not throw NPE and should reuse the bean since it's not a context bean
+        assertEquals(anonymousClass, processor.postProcessBeforeInstantiation(anonymousClass.getClass(), "anonymousBean"));
+    }
+    
+    @Test
+    void testPostProcessBeforeInstantiationForArrayClass() {
+        when(context.containsBean("arrayBean")).thenReturn(true);
+        when(context.getBeanFactory()).thenReturn(beanFactory);
+        when(beanFactory.getBeanDefinition("arrayBean")).thenReturn(beanDefinition);
+        String[] array = new String[0];
+        when(context.getBean("arrayBean")).thenReturn(array);
+        
+        // This should reuse the bean since array classes are not context beans
+        assertEquals(array, processor.postProcessBeforeInstantiation(array.getClass(), "arrayBean"));
+    }
 }
